@@ -50,17 +50,42 @@ impl StatusTracker for DefaultStatusTracker {
 
     fn tally<'a>(&self, name: &'a str) {
         if self.failed {
-            panic!("Test cases in block {} failed", name);
+            panic!("Test cases in block {:?} failed", name);
         }
     }
 }
 
-pub fn guard_against_panic<St>(block: &mut TestBlock<St>, closure: impl FnOnce() + UnwindSafe)
-where
+pub(crate) fn guard_against_panic<St>(
+    block: &mut TestBlock<St>,
+    closure: impl FnOnce() + UnwindSafe,
+) where
     St: StatusTracker + Sized,
 {
     let res = catch_unwind(closure);
     block.status_tracker.averred(res);
+}
+
+#[macro_export]
+macro_rules! aver {
+    ($block:expr, $statement:expr) => {
+        guard_against_panic(&mut $block, || {
+            assert!($statement);
+        });
+    };
+    ($block:expr, $statement:expr, $($arg:tt)+) => {
+        guard_against_panic(&mut $block, || {
+            assert!($statement, $($arg)+);
+        });
+    };
+}
+
+#[macro_export]
+macro_rules! defer_test_result {
+    ($block:ident, $name:expr, $code:block) => {
+        let mut tracker = DefaultStatusTracker { failed: false };
+        let mut $block: TestBlock<DefaultStatusTracker> = TestBlock::new($name, &mut tracker);
+        $code
+    };
 }
 
 #[cfg(test)]
@@ -94,11 +119,18 @@ mod tests {
         };
         {
             let mut tb: TestBlock<TestTracker> = TestBlock::new("foo", &mut tracker);
-            guard_against_panic(&mut tb, || {
-                assert!(false);
-            });
+            aver!(tb, false);
         }
         assert_eq!(tracker.succeeded, 0);
         assert_eq!(tracker.failed, 1);
+    }
+
+    #[test]
+    fn guarding() {
+        defer_test_result!(tb, "my first test", {
+            aver!(tb, false, "hi");
+            aver!(tb, false, "there");
+            aver!(tb, false, "yay");
+        });
     }
 }
