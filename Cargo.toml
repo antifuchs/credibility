@@ -1,0 +1,8 @@
+[package]
+name = "credibility"
+version = "0.1.0"
+authors = ["Andreas Fuchs <asf@boinkor.net>"]
+
+[dependencies]
+failure = "0.1.1"
+failure_derive = "0.1.1"
