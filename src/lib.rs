@@ -1,13 +1,10 @@
 extern crate failure;
-#[macro_use]
-extern crate failure_derive;
 
-use std::fmt::Display;
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{catch_unwind, UnwindSafe};
+use std::thread;
 
 pub trait StatusTracker {
-    fn failed(&mut self, expectation: impl Expectation);
-    fn succeeded(&mut self, expectation: impl Expectation);
+    fn averred<T: Sized>(&mut self, result: thread::Result<T>);
     fn tally<'a>(&self, name: &'a str);
 }
 
@@ -16,17 +13,17 @@ where
     St: 'a + StatusTracker + Sized,
 {
     name: &'a str,
-    status_tracker: Option<&'a mut St>,
+    status_tracker: &'a mut St,
 }
 
 impl<'a, St> TestBlock<'a, St>
 where
     St: StatusTracker + Sized,
 {
-    pub fn new<S: Into<Option<&'a mut St>>>(name: &'a str, tracker: S) -> TestBlock<'a, St> {
+    pub fn new(name: &'a str, tracker: &'a mut St) -> TestBlock<'a, St> {
         TestBlock {
             name: name,
-            status_tracker: tracker.into(),
+            status_tracker: tracker,
         }
     }
 }
@@ -36,26 +33,7 @@ where
     St: StatusTracker + Sized,
 {
     fn drop(&mut self) {
-        if let Some(ref tracker) = self.status_tracker {
-            tracker.tally(self.name);
-        }
-    }
-}
-
-pub trait Expectation
-where
-    Self: Display + Sized,
-{
-    fn expect(self) -> Result<(), Error<Self>>;
-}
-
-impl Expectation for bool {
-    fn expect(self) -> Result<(), Error<Self>> {
-        if self {
-            Ok(())
-        } else {
-            Err(Error { ex: self })
-        }
+        self.status_tracker.tally(self.name);
     }
 }
 
@@ -64,11 +42,11 @@ pub struct DefaultStatusTracker {
 }
 
 impl StatusTracker for DefaultStatusTracker {
-    fn failed(&mut self, _expectation: impl Expectation) {
-        self.failed = true
+    fn averred<T: Sized>(&mut self, result: thread::Result<T>) {
+        if let Err(_) = result {
+            self.failed = true;
+        }
     }
-
-    fn succeeded(&mut self, _expectation: impl Expectation) {}
 
     fn tally<'a>(&self, name: &'a str) {
         if self.failed {
@@ -77,27 +55,12 @@ impl StatusTracker for DefaultStatusTracker {
     }
 }
 
-pub fn guard_against_panic<St>(
-    block: &mut TestBlock<St>,
-    ex: impl Expectation,
-    closure: impl FnOnce(),
-) where
+pub fn guard_against_panic<St>(block: &mut TestBlock<St>, closure: impl FnOnce() + UnwindSafe)
+where
     St: StatusTracker + Sized,
 {
-    let res = catch_unwind(AssertUnwindSafe(closure));
-    match &mut block.status_tracker {
-        &mut Some(ref mut st) => match res {
-            Ok(()) => st.succeeded(ex),
-            Err(_) => st.failed(ex),
-        },
-        None => {}
-    };
-}
-
-#[derive(Fail, Debug)]
-#[fail(display = "Failed expectation: {}", ex)]
-pub struct Error<Ex: Expectation + Sized + Display> {
-    ex: Ex,
+    let res = catch_unwind(closure);
+    block.status_tracker.averred(res);
 }
 
 #[cfg(test)]
@@ -111,12 +74,11 @@ mod tests {
     }
 
     impl StatusTracker for TestTracker {
-        fn failed(&mut self, _expectation: impl Expectation) {
-            self.failed += 1;
-        }
-
-        fn succeeded(&mut self, _expectation: impl Expectation) {
-            self.succeeded += 1;
+        fn averred<T: Sized>(&mut self, result: thread::Result<T>) {
+            match result {
+                Ok(_) => self.succeeded += 1,
+                Err(_) => self.failed += 1,
+            }
         }
 
         fn tally<'a>(&self, _name: &'a str) {
@@ -132,8 +94,7 @@ mod tests {
         };
         {
             let mut tb: TestBlock<TestTracker> = TestBlock::new("foo", &mut tracker);
-            let ex = true; // TODO: should make something else
-            guard_against_panic(&mut tb, ex, || {
+            guard_against_panic(&mut tb, || {
                 assert!(false);
             });
         }
