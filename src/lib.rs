@@ -113,7 +113,7 @@ macro_rules! aver {
 
 #[macro_export]
 macro_rules! defer_test_result {
-    ($block:ident, $tracker_type:ty, $tracker:ident, $name:expr, $code:block) => {
+    ($block:ident, $tracker:ident : $tracker_type:ty, $name:expr, $code:block) => {
         let mut $block: TestBlock<$tracker_type> = TestBlock::new($name, &mut $tracker);
         let fun = || -> Result<(), failure::Error> {
             $code
@@ -203,8 +203,7 @@ mod tests {
         {
             defer_test_result!(
                 tb,
-                TestTracker,
-                tracker,
+                tracker: TestTracker,
                 "asserting that failure happens",
                 { failure_result() }
             );
@@ -224,7 +223,7 @@ mod tests {
     fn ok_result() {
         let mut tracker = TestTracker::default();
         {
-            defer_test_result!(tb, TestTracker, tracker, "asserting that success is OK", {
+            defer_test_result!(tb, tracker: TestTracker, "asserting that success is OK", {
                 Ok(())
             });
         }
