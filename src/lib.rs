@@ -1,7 +1,4 @@
-#[macro_use]
 extern crate failure;
-#[macro_use]
-extern crate failure_derive;
 
 use std::fmt::Debug;
 use std::panic::{catch_unwind, UnwindSafe};
@@ -83,8 +80,7 @@ impl StatusTracker for DefaultStatusTracker {
     }
 }
 
-#[allow(dead_code)] // TODO: is this right? Extract tests into a crate and find out.
-pub(crate) fn guard_against_panic<St, R>(
+pub fn guard_against_panic<St, R>(
     block: &mut TestBlock<St>,
     closure: impl FnOnce() -> Result<R, failure::Error> + UnwindSafe,
 ) where
@@ -122,119 +118,6 @@ macro_rules! defer_test_result {
     };
     ($block:ident, $name:expr, $code:block) => {
         let mut tracker = DefaultStatusTracker::default();
-        let mut $block: TestBlock<DefaultStatusTracker> = TestBlock::new($name, &mut tracker);
-        let fun = || -> Result<(), failure::Error> {
-            $code
-        }
-        $block.run(fun);
+        defer_test_result!($block, tracker: DefaultStatusTracker, $name, $code);
     };
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[derive(Copy, Clone)]
-    struct TestTracker {
-        failed: usize,
-        errored: usize,
-        succeeded: usize,
-        ran: usize,
-    }
-
-    impl Default for TestTracker {
-        fn default() -> TestTracker {
-            TestTracker {
-                failed: 0,
-                succeeded: 0,
-                errored: 0,
-                ran: 0,
-            }
-        }
-    }
-
-    impl StatusTracker for TestTracker {
-        fn averred<T: Sized + Debug>(&mut self, result: thread::Result<Result<T, failure::Error>>) {
-            println!("aver result: {:?}", result);
-            match result {
-                Ok(Ok(_)) => self.succeeded += 1,
-                Ok(Err(_)) => self.errored += 1,
-                Err(_) => self.failed += 1,
-            }
-        }
-
-        fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
-            println!("run result: {:?}", result);
-            match result {
-                Err(_) => self.errored += 1,
-                Ok(_) => self.ran += 1,
-            }
-        }
-        fn tally<'a>(&self, _name: &'a str) {}
-    }
-
-    fn failure_result() -> Result<(), failure::Error> {
-        Err(format_err!("nope!"))?;
-        Ok(())
-    }
-
-    #[test]
-    fn panicking() {
-        let mut tracker = TestTracker::default();
-        {
-            let mut tb: TestBlock<TestTracker> = TestBlock::new("foo", &mut tracker);
-            aver!(tb, false); // This gets executed
-            aver!(tb, true); // This too, despite the panic above!
-        }
-        assert_eq!(
-            (
-                tracker.failed,
-                tracker.succeeded,
-                tracker.errored,
-                tracker.ran
-            ),
-            (1, 1, 0, 0)
-        );
-    }
-
-    #[test]
-    fn err_result() {
-        let mut tracker = TestTracker::default();
-        {
-            defer_test_result!(
-                tb,
-                tracker: TestTracker,
-                "asserting that failure happens",
-                { failure_result() }
-            );
-        }
-        assert_eq!(
-            (
-                tracker.failed,
-                tracker.succeeded,
-                tracker.errored,
-                tracker.ran
-            ),
-            (0, 0, 1, 0)
-        );
-    }
-
-    #[test]
-    fn ok_result() {
-        let mut tracker = TestTracker::default();
-        {
-            defer_test_result!(tb, tracker: TestTracker, "asserting that success is OK", {
-                Ok(())
-            });
-        }
-        assert_eq!(
-            (
-                tracker.failed,
-                tracker.succeeded,
-                tracker.errored,
-                tracker.ran
-            ),
-            (0, 0, 0, 1)
-        );
-    }
 }
