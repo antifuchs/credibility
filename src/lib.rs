@@ -107,13 +107,11 @@ macro_rules! aver {
 macro_rules! defer_test_result {
     ($block:ident, $tracker:ident, $name:expr, $code:block) => {
         let mut $block = $crate::TestBlock::new($name, &mut $tracker);
-        let fun = || -> Result<(), ::failure::Error> {
-            $code
-        }
+        let fun = || -> Result<(), ::failure::Error> { $code };
         $block.run(fun);
     };
     ($block:ident, $name:expr, $code:block) => {
         let mut tracker = $crate::DefaultStatusTracker::default();
-        defer_test_result!($block, tracker: $crate::DefaultStatusTracker, $name, $code);
+        defer_test_result!($block, tracker, $name, $code);
     };
 }
