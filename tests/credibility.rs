@@ -19,15 +19,7 @@ fn panicking() {
         aver!(tb, false); // This gets executed
         aver!(tb, true); // This too, despite the panic above!
     }
-    assert_eq!(
-        (
-            tracker.failed,
-            tracker.succeeded,
-            tracker.errored,
-            tracker.ran
-        ),
-        (1, 1, 0, 0)
-    );
+    assert_eq!(tracker.counts(), (1, 1, 0, 0));
 }
 
 #[test]
@@ -38,15 +30,7 @@ fn err_result() {
             failure_result()
         });
     }
-    assert_eq!(
-        (
-            tracker.failed,
-            tracker.succeeded,
-            tracker.errored,
-            tracker.ran
-        ),
-        (0, 0, 1, 0)
-    );
+    assert_eq!(tracker.counts(), (0, 0, 1, 0));
 }
 
 #[test]
@@ -55,13 +39,5 @@ fn ok_result() {
     {
         defer_test_result!(tb, tracker, "asserting that success is OK", { Ok(()) });
     }
-    assert_eq!(
-        (
-            tracker.failed,
-            tracker.succeeded,
-            tracker.errored,
-            tracker.ran
-        ),
-        (0, 0, 0, 1)
-    );
+    assert_eq!(tracker.counts(), (0, 0, 0, 1));
 }

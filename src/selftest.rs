@@ -10,10 +10,10 @@ use failure;
 /// happened. It's mostly useful for writing tests.
 #[derive(Copy, Clone)]
 pub struct TestTracker {
-    pub failed: usize,
-    pub errored: usize,
-    pub succeeded: usize,
-    pub ran: usize,
+    failed: usize,
+    errored: usize,
+    succeeded: usize,
+    ran: usize,
 }
 
 impl Default for TestTracker {
@@ -44,4 +44,15 @@ impl StatusTracker for TestTracker {
         }
     }
     fn tally<'a>(&self, _name: &'a str) {}
+}
+
+impl TestTracker {
+    /// Returns a tuple containing the number of:
+    /// * failed assertions
+    /// * succeeded assertions
+    /// * blocks that returned an Err result
+    /// * blocks that returned an Ok result
+    pub fn counts(&self) -> (usize, usize, usize, usize) {
+        (self.failed, self.succeeded, self.errored, self.ran)
+    }
 }
