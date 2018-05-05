@@ -7,8 +7,14 @@ use std::panic::{catch_unwind, UnwindSafe};
 use std::thread;
 
 pub trait StatusTracker {
-    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>);
+    fn panicked(&mut self);
     fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>);
+    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
+        match result {
+            Ok(_) => {}
+            Err(_) => self.panicked(),
+        }
+    }
     fn tally<'a>(&self, name: &'a str);
 }
 
@@ -31,8 +37,12 @@ where
         }
     }
 
-    pub fn run<F: Sized + Fn() -> Result<(), failure::Error>>(&mut self, fun: F) {
-        self.status_tracker.ran(fun());
+    pub fn run<F: Sized + UnwindSafe + FnOnce() -> Result<(), failure::Error>>(&mut self, fun: F) {
+        let thread_res = catch_unwind(|| fun());
+        match thread_res {
+            Ok(result) => self.status_tracker.ran(result),
+            Err(_) => self.status_tracker.panicked(),
+        }
     }
 }
 
@@ -47,36 +57,26 @@ where
 
 pub struct DefaultStatusTracker {
     failed: bool,
-    errored: bool,
 }
 
 impl Default for DefaultStatusTracker {
     fn default() -> DefaultStatusTracker {
-        DefaultStatusTracker {
-            failed: false,
-            errored: false,
-        }
+        DefaultStatusTracker { failed: false }
     }
 }
 
 impl StatusTracker for DefaultStatusTracker {
-    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
-        match result {
-            Err(_) => self.failed = true,
-            Ok(_) => {}
-        };
+    fn panicked(&mut self) {
+        self.failed = true;
     }
 
     fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
-        match result {
-            Err(_) => self.errored = true,
-            Ok(_) => {}
-        }
+        result.expect("Test block {:?} returned Err result");
     }
 
     fn tally<'a>(&self, name: &'a str) {
         if self.failed {
-            panic!("Test cases in block {:?} failed", name);
+            panic!("Test block {:?} panicked", name);
         }
     }
 }

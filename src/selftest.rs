@@ -12,6 +12,7 @@ use failure;
 pub struct TestTracker {
     failed: usize,
     errored: usize,
+    panicked: usize,
     succeeded: usize,
     ran: usize,
 }
@@ -21,6 +22,7 @@ impl Default for TestTracker {
         TestTracker {
             failed: 0,
             succeeded: 0,
+            panicked: 0,
             errored: 0,
             ran: 0,
         }
@@ -28,6 +30,9 @@ impl Default for TestTracker {
 }
 
 impl StatusTracker for TestTracker {
+    fn panicked(&mut self) {
+        self.panicked += 1;
+    }
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
         println!("aver result: {:?}", result);
         match result {
@@ -52,7 +57,14 @@ impl TestTracker {
     /// * succeeded assertions
     /// * blocks that returned an Err result
     /// * blocks that returned an Ok result
-    pub fn counts(&self) -> (usize, usize, usize, usize) {
-        (self.failed, self.succeeded, self.errored, self.ran)
+    /// * blocks that panicked
+    pub fn counts(&self) -> (usize, usize, usize, usize, usize) {
+        (
+            self.failed,
+            self.succeeded,
+            self.errored,
+            self.ran,
+            self.panicked,
+        )
     }
 }
