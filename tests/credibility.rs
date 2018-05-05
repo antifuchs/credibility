@@ -4,7 +4,6 @@ extern crate credibility;
 extern crate failure;
 
 use credibility::selftest::*;
-use credibility::*;
 
 fn failure_result() -> Result<(), failure::Error> {
     Err(format_err!("nope!"))?;

@@ -92,12 +92,12 @@ where
 #[macro_export]
 macro_rules! aver {
     ($block:expr, $statement:expr) => {
-        guard_against_panic(&mut $block, || {
+        $crate::guard_against_panic(&mut $block, || {
             assert!($statement);
         });
     };
     ($block:expr, $statement:expr, $($arg:tt)+) => {
-        guard_against_panic(&mut $block, || {
+        $crate::guard_against_panic(&mut $block, || {
             assert!($statement, $($arg)+);
         });
     };
@@ -106,14 +106,14 @@ macro_rules! aver {
 #[macro_export]
 macro_rules! defer_test_result {
     ($block:ident, $tracker:ident : $tracker_type:ty, $name:expr, $code:block) => {
-        let mut $block: TestBlock<$tracker_type> = TestBlock::new($name, &mut $tracker);
-        let fun = || -> Result<(), failure::Error> {
+        let mut $block: $crate::TestBlock<$tracker_type> = $crate::TestBlock::new($name, &mut $tracker);
+        let fun = || -> Result<(), ::failure::Error> {
             $code
         }
         $block.run(fun);
     };
     ($block:ident, $name:expr, $code:block) => {
-        let mut tracker = DefaultStatusTracker::default();
-        defer_test_result!($block, tracker: DefaultStatusTracker, $name, $code);
+        let mut tracker = $crate::DefaultStatusTracker::default();
+        defer_test_result!($block, tracker: $crate::DefaultStatusTracker, $name, $code);
     };
 }
