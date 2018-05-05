@@ -105,8 +105,8 @@ macro_rules! aver {
 
 #[macro_export]
 macro_rules! defer_test_result {
-    ($block:ident, $tracker:ident : $tracker_type:ty, $name:expr, $code:block) => {
-        let mut $block: $crate::TestBlock<$tracker_type> = $crate::TestBlock::new($name, &mut $tracker);
+    ($block:ident, $tracker:ident, $name:expr, $code:block) => {
+        let mut $block = $crate::TestBlock::new($name, &mut $tracker);
         let fun = || -> Result<(), ::failure::Error> {
             $code
         }

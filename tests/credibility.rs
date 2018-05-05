@@ -34,12 +34,9 @@ fn panicking() {
 fn err_result() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(
-            tb,
-            tracker: TestTracker,
-            "asserting that failure happens",
-            { failure_result() }
-        );
+        defer_test_result!(tb, tracker, "asserting that failure happens", {
+            failure_result()
+        });
     }
     assert_eq!(
         (
@@ -56,9 +53,7 @@ fn err_result() {
 fn ok_result() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(tb, tracker: TestTracker, "asserting that success is OK", {
-            Ok(())
-        });
+        defer_test_result!(tb, tracker, "asserting that success is OK", { Ok(()) });
     }
     assert_eq!(
         (
