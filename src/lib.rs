@@ -1,11 +1,13 @@
 extern crate failure;
 
+pub mod selftest;
+
 use std::fmt::Debug;
 use std::panic::{catch_unwind, UnwindSafe};
 use std::thread;
 
 pub trait StatusTracker {
-    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<Result<T, failure::Error>>);
+    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>);
     fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>);
     fn tally<'a>(&self, name: &'a str);
 }
@@ -58,11 +60,10 @@ impl Default for DefaultStatusTracker {
 }
 
 impl StatusTracker for DefaultStatusTracker {
-    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<Result<T, failure::Error>>) {
+    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
         match result {
             Err(_) => self.failed = true,
-            Ok(Err(_)) => self.errored = true,
-            Ok(Ok(_)) => {}
+            Ok(_) => {}
         };
     }
 
@@ -80,12 +81,9 @@ impl StatusTracker for DefaultStatusTracker {
     }
 }
 
-pub fn guard_against_panic<St, R>(
-    block: &mut TestBlock<St>,
-    closure: impl FnOnce() -> Result<R, failure::Error> + UnwindSafe,
-) where
+pub fn guard_against_panic<St>(block: &mut TestBlock<St>, closure: impl FnOnce() + UnwindSafe)
+where
     St: StatusTracker + Sized,
-    R: Debug + Sized,
 {
     let res = catch_unwind(closure);
     block.status_tracker.averred(res);
@@ -94,15 +92,13 @@ pub fn guard_against_panic<St, R>(
 #[macro_export]
 macro_rules! aver {
     ($block:expr, $statement:expr) => {
-        guard_against_panic(&mut $block, || -> Result<(), failure::Error> {
+        guard_against_panic(&mut $block, || {
             assert!($statement);
-            Ok(())
         });
     };
     ($block:expr, $statement:expr, $($arg:tt)+) => {
-        guard_against_panic(&mut $block, || -> Result<(), failure::Error> {
+        guard_against_panic(&mut $block, || {
             assert!($statement, $($arg)+);
-            Ok(())
         });
     };
 }
