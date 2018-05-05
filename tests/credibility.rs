@@ -3,48 +3,8 @@ extern crate credibility;
 #[macro_use]
 extern crate failure;
 
+use credibility::selftest::*;
 use credibility::*;
-use std::fmt::Debug;
-use std::thread;
-
-#[derive(Copy, Clone)]
-struct TestTracker {
-    failed: usize,
-    errored: usize,
-    succeeded: usize,
-    ran: usize,
-}
-
-impl Default for TestTracker {
-    fn default() -> TestTracker {
-        TestTracker {
-            failed: 0,
-            succeeded: 0,
-            errored: 0,
-            ran: 0,
-        }
-    }
-}
-
-impl credibility::StatusTracker for TestTracker {
-    fn averred<T: Sized + Debug>(&mut self, result: thread::Result<Result<T, failure::Error>>) {
-        println!("aver result: {:?}", result);
-        match result {
-            Ok(Ok(_)) => self.succeeded += 1,
-            Ok(Err(_)) => self.errored += 1,
-            Err(_) => self.failed += 1,
-        }
-    }
-
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
-        println!("run result: {:?}", result);
-        match result {
-            Err(_) => self.errored += 1,
-            Ok(_) => self.ran += 1,
-        }
-    }
-    fn tally<'a>(&self, _name: &'a str) {}
-}
 
 fn failure_result() -> Result<(), failure::Error> {
     Err(format_err!("nope!"))?;
