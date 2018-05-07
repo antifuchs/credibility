@@ -14,12 +14,13 @@ fn failure_result() -> Result<(), failure::Error> {
 fn panicking() {
     let mut tracker = TestTracker::default();
     {
-        let mut tb: credibility::TestBlock<TestTracker> =
-            credibility::TestBlock::new("foo", &mut tracker);
-        aver!(tb, false); // This gets executed
-        aver!(tb, true); // This too, despite the panic above!
+        defer_test_result!(inner_tb, tracker, "Block with a default test reporter", {
+            aver!(inner_tb, false, "Executed");
+            aver!(inner_tb, false, "Also executed");
+            Ok(())
+        });
     }
-    assert_eq!(tracker.counts(), (1, 1, 0, 0, 0));
+    assert_eq!(tracker.counts(), (2, 0, 0, 1));
 }
 
 #[test]
@@ -30,7 +31,7 @@ fn err_result() {
             failure_result()
         });
     }
-    assert_eq!(tracker.counts(), (0, 0, 1, 0, 0));
+    assert_eq!(tracker.counts(), (0, 0, 1, 0));
 }
 
 #[test]
@@ -39,5 +40,5 @@ fn ok_result() {
     {
         defer_test_result!(tb, tracker, "asserting that success is OK", { Ok(()) });
     }
-    assert_eq!(tracker.counts(), (0, 0, 0, 1, 0));
+    assert_eq!(tracker.counts(), (0, 0, 0, 1));
 }
