@@ -14,11 +14,16 @@ fn failure_result() -> Result<(), failure::Error> {
 fn aver_failures() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(inner_tb, tracker, "Block with a default test reporter", {
-            aver!(inner_tb, false, "Executed");
-            aver!(inner_tb, false, "Also executed");
-            Ok(())
-        });
+        defer_test_result!(
+            tb,
+            tracker,
+            "Checking that aver failures don't cause aborts",
+            {
+                aver!(tb, false, "Executed");
+                aver!(tb, false, "Also executed");
+                Ok(())
+            }
+        );
     }
     assert_eq!(tracker.counts(), (2, 0, 0, 1));
 }
@@ -27,9 +32,9 @@ fn aver_failures() {
 fn aver_success() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(inner_tb, tracker, "Block with a default test reporter", {
-            aver!(inner_tb, true, "Executed");
-            aver!(inner_tb, true, "Also executed");
+        defer_test_result!(tb, tracker, "Checking that aver successes count", {
+            aver!(tb, true, "Executed");
+            aver!(tb, true, "Also executed");
             Ok(())
         });
     }
