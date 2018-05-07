@@ -11,7 +11,7 @@ fn failure_result() -> Result<(), failure::Error> {
 }
 
 #[test]
-fn panicking() {
+fn aver_failures() {
     let mut tracker = TestTracker::default();
     {
         defer_test_result!(inner_tb, tracker, "Block with a default test reporter", {
@@ -21,6 +21,19 @@ fn panicking() {
         });
     }
     assert_eq!(tracker.counts(), (2, 0, 0, 1));
+}
+
+#[test]
+fn aver_success() {
+    let mut tracker = TestTracker::default();
+    {
+        defer_test_result!(inner_tb, tracker, "Block with a default test reporter", {
+            aver!(inner_tb, true, "Executed");
+            aver!(inner_tb, true, "Also executed");
+            Ok(())
+        });
+    }
+    assert_eq!(tracker.counts(), (0, 2, 0, 1));
 }
 
 #[test]
