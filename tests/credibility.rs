@@ -14,7 +14,7 @@ fn failure_result() -> Result<(), failure::Error> {
 fn aver_failures() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(
+        test_block!(
             tb,
             tracker,
             "Checking that aver failures don't cause aborts",
@@ -32,7 +32,7 @@ fn aver_failures() {
 fn aver_eq() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(
+        test_block!(
             tb,
             tracker,
             "Checking that aver failures don't cause aborts",
@@ -52,7 +52,7 @@ fn aver_table() {
     let mut tracker = TestTracker::default();
     {
         let cases = vec![(1, 1, 2), (3, 4, 5), (5, 6, 11)];
-        defer_test_result!(
+        test_block!(
             tb,
             tracker,
             "Checking that aver failures don't cause aborts",
@@ -72,7 +72,7 @@ fn aver_table() {
 fn aver_success() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(tb, tracker, "Checking that aver successes count", {
+        test_block!(tb, tracker, "Checking that aver successes count", {
             aver!(tb, true, "Executed");
             aver!(tb, true, "Also executed");
             Ok(())
@@ -85,7 +85,7 @@ fn aver_success() {
 fn err_result() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(tb, tracker, "asserting that failure happens", {
+        test_block!(tb, tracker, "asserting that failure happens", {
             failure_result()
         });
     }
@@ -96,7 +96,7 @@ fn err_result() {
 fn ok_result() {
     let mut tracker = TestTracker::default();
     {
-        defer_test_result!(tb, tracker, "asserting that success is OK", { Ok(()) });
+        test_block!(tb, tracker, "asserting that success is OK", { Ok(()) });
     }
     assert_eq!(tracker.counts(), (0, 0, 0, 1));
 }

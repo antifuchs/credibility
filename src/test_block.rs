@@ -4,8 +4,8 @@ use std::panic::{catch_unwind, UnwindSafe};
 use super::StatusTracker;
 
 /// A RAII test result accumulator.  The `TestBlock` defines a unit of
-/// test functionality, within which assertions can fail without
-/// aborting the test, with the macro [`aver!`](macro.aver.html).
+/// test functionality, within which assertions using the macro
+/// [`aver!`](macro.aver.html) can fail without aborting the test.
 ///
 /// # Lifetime & Usage
 /// As soon as a `TestBlock` variable gets dropped, it kicks off its
@@ -16,7 +16,7 @@ use super::StatusTracker;
 /// Since error results are the other "big" cause of early test
 /// aborts, test blocks optionally allow code blocks that use them to
 /// return results early with `?` or `try!`. To do so ergonomically,
-/// use the `defer_test_result!` macro.
+/// use the [`test_block!`](macro.test_block.html) macro.
 pub struct TestBlock<'a, St>
 where
     St: 'a + StatusTracker + Sized,

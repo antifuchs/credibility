@@ -11,7 +11,7 @@
 /// # #[macro_use] extern crate credibility;
 /// # extern crate failure;
 /// # fn main() {
-/// defer_test_result!(tb, "An example test block", {
+/// test_block!(tb, "An example test block", {
 ///     aver!(tb, true, "A working assertion");
 ///     Ok(())
 /// });
@@ -25,7 +25,7 @@
 /// # #[macro_use] extern crate credibility;
 /// # extern crate failure;
 /// # fn main() {
-/// defer_test_result!(tb, "An example test block", {
+/// test_block!(tb, "An example test block", {
 ///     let cases = vec![
 ///         (2, 3, 5),  // will be checked
 ///         (1, 1, 2),  // will also be checked!
@@ -59,7 +59,7 @@ macro_rules! aver {
 /// # #[macro_use] extern crate credibility;
 /// # extern crate failure;
 /// # fn main() {
-/// defer_test_result!(tb, "An example test block", {
+/// test_block!(tb, "An example test block", {
 ///     aver_eq!(tb, 2+3, 5, "Math should work!");
 ///     Ok(())
 /// });
@@ -74,7 +74,7 @@ macro_rules! aver {
 /// # #[macro_use] extern crate credibility;
 /// # extern crate failure;
 /// # fn main() {
-/// defer_test_result!(tb, "An example test block", {
+/// test_block!(tb, "An example test block", {
 ///     let cases = vec![
 ///         (2, 3, 5),  // will be checked
 ///         (1, 1, 2),  // will also be checked!
@@ -82,7 +82,7 @@ macro_rules! aver {
 ///     ];
 ///     for (in1, in2, output) in cases {
 ///         let result = in1+in2+1;
-///         aver_eq!(tb, output, result,);
+///         aver_eq!(tb, output, result);
 ///     }
 ///     Ok(())
 /// });
@@ -97,8 +97,70 @@ macro_rules! aver_eq {
     };
 }
 
+/// Create a [`TestBlock`](struct.TestBlock.html) valid for a block of code.
+///
+/// `test_block` is a convenience macro (that's very convenient!) for
+/// running tests in bulk and causing a test abort based on their
+/// results once the block terminates. The block of code runs in a
+/// closure defined to return a `Result`, so within the block, `?` and
+/// `try!` work correctly.
+///
+/// # Handling `Result`
+///
+/// Since `test_block!` executes code inside a closure that returns a
+/// Result, test code can use `?` within that block, to short-circuit
+/// error handling without unsightly `.unwrap()` calls. The
+/// unfortunate consequence of this is that code blocks within
+/// `test_block!` macros must return `Ok(())` at the end.
+///
+/// # Teardown behavior
+/// The behavior at the end of the block depends on the
+/// [`StatusTracker`](trait.StatusTracker.html) used; the default form
+/// of this macro creates a
+/// [`DefaultStatusTracker`](struct.DefaultStatusTracker.html), which
+/// panics at the end of the block if any errors occur, or if the code
+/// block returns a non-`Ok` result.
+///
+/// Use the form of this macro that takes an additional
+/// [`StatusTracker`](trait.StatusTracker.html) argument to customize
+/// this behavior; see the module [`selftest`](selftest/index.html)
+/// for an example.
+///
+/// # Examples
+///
+/// A functioning example of a table test:
+/// ``` rust
+/// # #[macro_use] extern crate credibility;
+/// # extern crate failure;
+/// # fn main() {
+/// test_block!(tb, "An example test block", {
+///     let cases = vec![
+///         (2, 3, 5),
+///         (1, 1, 2),
+///         (1, 1, 2),
+///     ];
+///     for (in1, in2, output) in cases {
+///         aver_eq!(tb, output, in1+in2);
+///     }
+///     Ok(())
+/// });
+/// # }
+/// ```
+///
+/// An example of how to handle error results in tests:
+/// ``` rust, should_panic
+/// # #[macro_use] extern crate credibility;
+/// # #[macro_use] extern crate failure;
+/// # fn fail() -> Result<(), failure::Error> { Err(format_err!("this test should fail")) }
+/// # fn main() {
+/// test_block!(tb, "An example test block that should fail", {
+///     fail()
+/// });
+/// # }
+/// ```
+///
 #[macro_export]
-macro_rules! defer_test_result {
+macro_rules! test_block {
     ($block:ident, $tracker:ident, $name:expr, $code:block) => {{
         let mut $block = $crate::TestBlock::new($name, &mut $tracker);
         let result = {
@@ -109,6 +171,6 @@ macro_rules! defer_test_result {
     }};
     ($block:ident, $name:expr, $code:block) => {{
         let mut tracker = $crate::DefaultStatusTracker::default();
-        defer_test_result!($block, tracker, $name, $code);
+        test_block!($block, tracker, $name, $code);
     }};
 }
