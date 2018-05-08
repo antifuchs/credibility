@@ -97,6 +97,19 @@ macro_rules! aver {
 }
 
 #[macro_export]
+macro_rules! aver_eq {
+    ($block:expr, $statement_l:expr, statement_r:expr) => {
+        $crate::aver_with(&mut $block, || {
+            assert_eq!($statement_l, $statement_r);
+        });
+    };
+    ($block:expr, $statement_l:expr, $statement_r:expr, $($arg:tt)+) => {
+        $crate::aver_with(&mut $block, || {
+            assert_eq!($statement_l, $statement_r, $($arg)+);
+        });
+    };
+}
+#[macro_export]
 macro_rules! defer_test_result {
     ($block:ident, $tracker:ident, $name:expr, $code:block) => {{
         let mut $block = $crate::TestBlock::new($name, &mut $tracker);

@@ -29,6 +29,25 @@ fn aver_failures() {
 }
 
 #[test]
+fn aver_eq() {
+    let mut tracker = TestTracker::default();
+    {
+        defer_test_result!(
+            tb,
+            tracker,
+            "Checking that aver failures don't cause aborts",
+            {
+                aver_eq!(tb, false, false, "Equal");
+                aver_eq!(tb, true, false, "Not equal");
+                aver_eq!(tb, true, false, "Not equal, again");
+                Ok(())
+            }
+        );
+    }
+    assert_eq!(tracker.counts(), (2, 1, 0, 1));
+}
+
+#[test]
 fn aver_success() {
     let mut tracker = TestTracker::default();
     {
