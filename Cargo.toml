@@ -2,6 +2,24 @@
 name = "credibility"
 version = "0.1.0"
 authors = ["Andreas Fuchs <asf@boinkor.net>"]
+license = "MIT"
+repository = "https://github.com/antifuchs/credibility.git"
+readme = "README.md"
+description = "A thin wrapper around assert to support table-driven tests"
+documentation = "https://docs.rs/credibility"
+
+[package.metadata.release]
+sign-commit = false
+upload-doc = false
+pre-release-commit-message = "Release {{version}} 🎉🎉"
+pro-release-commit-message = "Start next development iteration {{version}}"
+tag-message = "Release {{prefix}}{{version}}"
+dev-version-ext = "dev"
+tag-prefix = "v"
+
+[badges]
+travis-ci = { repository = "antifuchs/credibility", branch = "master" }
+maintenance = { status = "passively-maintained" }
 
 [dependencies]
 failure = "0.1.1"
