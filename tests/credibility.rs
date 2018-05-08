@@ -48,6 +48,27 @@ fn aver_eq() {
 }
 
 #[test]
+fn aver_table() {
+    let mut tracker = TestTracker::default();
+    {
+        let cases = vec![(1, 1, 2), (3, 4, 5), (5, 6, 11)];
+        defer_test_result!(
+            tb,
+            tracker,
+            "Checking that aver failures don't cause aborts",
+            {
+                for (in1, in2, output) in cases {
+                    let sum = in1 + in2;
+                    aver_eq!(tb, sum, output);
+                }
+                Ok(())
+            }
+        );
+    }
+    assert_eq!(tracker.counts(), (1, 2, 0, 1));
+}
+
+#[test]
 fn aver_success() {
     let mut tracker = TestTracker::default();
     {

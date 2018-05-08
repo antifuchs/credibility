@@ -1,4 +1,4 @@
-///! Structs and functions to enable testing `credibility` itself
+//! Structs and functions to enable testing `credibility` itself
 use StatusTracker;
 
 use std::fmt::Debug;
@@ -27,6 +27,9 @@ impl Default for TestTracker {
     }
 }
 
+/// Implements the `StatusTracker` trait non-fatally. This
+/// implementation does not panic, making it very useful for writing
+/// tests.
 impl StatusTracker for TestTracker {
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
         println!("aver result: {:?}", result);
@@ -43,6 +46,9 @@ impl StatusTracker for TestTracker {
             Ok(_) => self.ran += 1,
         }
     }
+
+    /// Does nothing. To get information about a test block's statuses
+    /// in a real test, use [`counts`](#method.counts).
     fn tally<'a>(&self, _name: &'a str) {}
 }
 
