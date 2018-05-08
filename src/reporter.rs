@@ -4,7 +4,7 @@ use std::thread;
 
 /// Collects and report test statuses.  This trait is used by the test
 /// block type to retain the state of a test run.
-pub trait StatusTracker {
+pub trait TestReporter {
     /// Invoked whenever the result of an [`aver!`](#macro.aver) is
     /// available. If that result is the `thread::Result`'s `Err`
     /// kind, the `aver!` failed, indicating that the test should fail.
@@ -27,17 +27,17 @@ pub trait StatusTracker {
 /// and `aver_eq` invocations to the end of the test block's lifetime;
 /// if any failures occurred, or if the test block returned with an
 /// `Err` Result, it panics.
-pub struct DefaultStatusTracker {
+pub struct DefaultTestReporter {
     failed: bool,
 }
 
-impl Default for DefaultStatusTracker {
-    fn default() -> DefaultStatusTracker {
-        DefaultStatusTracker { failed: false }
+impl Default for DefaultTestReporter {
+    fn default() -> DefaultTestReporter {
+        DefaultTestReporter { failed: false }
     }
 }
 
-impl StatusTracker for DefaultStatusTracker {
+impl TestReporter for DefaultTestReporter {
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
         match result {
             Err(_) => self.failed = true,

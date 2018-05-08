@@ -115,14 +115,14 @@ macro_rules! aver_eq {
 ///
 /// # Teardown behavior
 /// The behavior at the end of the block depends on the
-/// [`StatusTracker`](trait.StatusTracker.html) used; the default form
+/// [`TestReporter`](trait.TestReporter.html) used; the default form
 /// of this macro creates a
-/// [`DefaultStatusTracker`](struct.DefaultStatusTracker.html), which
+/// [`DefaultTestReporter`](struct.DefaultTestReporter.html), which
 /// panics at the end of the block if any errors occur, or if the code
 /// block returns a non-`Ok` result.
 ///
 /// Use the form of this macro that takes an additional
-/// [`StatusTracker`](trait.StatusTracker.html) argument to customize
+/// [`TestReporter`](trait.TestReporter.html) argument to customize
 /// this behavior; see the module [`selftest`](selftest/index.html)
 /// for an example.
 ///
@@ -158,7 +158,6 @@ macro_rules! aver_eq {
 /// });
 /// # }
 /// ```
-///
 #[macro_export]
 macro_rules! test_block {
     ($block:ident, $tracker:ident, $name:expr, $code:block) => {{
@@ -170,7 +169,7 @@ macro_rules! test_block {
         $block.ran(result);
     }};
     ($block:ident, $name:expr, $code:block) => {{
-        let mut tracker = $crate::DefaultStatusTracker::default();
+        let mut tracker = $crate::DefaultTestReporter::default();
         test_block!($block, tracker, $name, $code);
     }};
 }

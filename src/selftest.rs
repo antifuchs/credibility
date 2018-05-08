@@ -1,5 +1,5 @@
 //! Structs and functions to enable testing `credibility` itself
-use StatusTracker;
+use TestReporter;
 
 use std::fmt::Debug;
 use std::thread;
@@ -27,10 +27,10 @@ impl Default for TestTracker {
     }
 }
 
-/// Implements the `StatusTracker` trait non-fatally. This
+/// Implements the `TestReporter` trait non-fatally. This
 /// implementation does not panic, making it very useful for writing
 /// tests.
-impl StatusTracker for TestTracker {
+impl TestReporter for TestTracker {
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
         println!("aver result: {:?}", result);
         match result {
