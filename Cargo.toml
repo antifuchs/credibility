@@ -1,6 +1,6 @@
 [package]
 name = "credibility"
-version = "0.1.2-dev"
+version = "0.1.2"
 authors = ["Andreas Fuchs <asf@boinkor.net>"]
 license = "MIT"
 repository = "https://github.com/antifuchs/credibility.git"
