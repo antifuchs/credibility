@@ -9,7 +9,6 @@
 /// # Examples
 /// ``` rust
 /// # #[macro_use] extern crate credibility;
-/// # extern crate failure;
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver!(tb, true, "A working assertion");
@@ -23,7 +22,6 @@
 ///
 /// ``` rust,should_panic
 /// # #[macro_use] extern crate credibility;
-/// # extern crate failure;
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     let cases = vec![
@@ -57,7 +55,6 @@ macro_rules! aver {
 /// # Examples
 /// ```
 /// # #[macro_use] extern crate credibility;
-/// # extern crate failure;
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver_eq!(tb, 2+3, 5, "Math should work!");
@@ -72,7 +69,6 @@ macro_rules! aver {
 ///
 /// ``` rust,should_panic
 /// # #[macro_use] extern crate credibility;
-/// # extern crate failure;
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     let cases = vec![
@@ -131,7 +127,6 @@ macro_rules! aver_eq {
 /// A functioning example of a table test:
 /// ``` rust
 /// # #[macro_use] extern crate credibility;
-/// # extern crate failure;
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     let cases = vec![
@@ -163,7 +158,7 @@ macro_rules! test_block {
     ($block:ident, $tracker:ident, $name:expr, $code:block) => {{
         let mut $block = $crate::TestBlock::new($name, &mut $tracker);
         let result = {
-            let mut fun = || -> Result<(), ::failure::Error> { $code };
+            let mut fun = || $code;
             fun()
         };
         $block.ran(result);
