@@ -39,10 +39,9 @@ impl Default for DefaultTestReporter {
 
 impl TestReporter for DefaultTestReporter {
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>) {
-        match result {
-            Err(_) => self.failed = true,
-            Ok(_) => {}
-        };
+        if result.is_err() {
+            self.failed = true
+        }
     }
 
     fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {

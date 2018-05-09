@@ -32,7 +32,7 @@ where
     /// Creates a new `TestBlock` with a tracker.
     pub fn new(name: &'a str, tracker: &'a mut St) -> TestBlock<'a, St> {
         TestBlock {
-            name: name,
+            name,
             status_tracker: tracker,
         }
     }
