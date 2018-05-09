@@ -32,6 +32,7 @@ matrix:
 before_script:
   - bash -c 'if [[ "$RUN_RUSTFMT" == "true" ]]; then
       rustup component add rustfmt-preview
+      ;
     fi'
   - bash -c 'if [[ "$RUN_CLIPPY" == "true" ]]; then
       rm -f ~/.cargo/bin/clippy;
