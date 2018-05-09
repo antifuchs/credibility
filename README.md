@@ -16,7 +16,7 @@ types too much.
 
 ``` rust
 #[macro_use] extern crate credibility;
-extern crate failurk;
+extern crate failure;
 
 #[test]
 fn test_sums() {
