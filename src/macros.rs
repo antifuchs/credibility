@@ -93,6 +93,54 @@ macro_rules! aver_eq {
     };
 }
 
+/// Asserts that two values are not equal to each other (using
+/// `assert_ne`), but does not panic.
+///
+/// Much like [`aver!`](#macro.aver), `aver_ne!` uses `assert_ne!` and
+/// catches any panic caused; if any panic occurs, it tells the test
+/// block which will fail once it gets dropped.
+///
+/// # Examples
+/// ```
+/// # #[macro_use] extern crate credibility;
+/// # fn main() {
+/// test_block!(tb, "An example test block", {
+///     aver_ne!(tb, 2+4, 5, "Math should work!");
+///     Ok(())
+/// });
+/// # }
+/// ```
+///
+/// And here's the example of failing test cases above again, just
+/// with nicer error messages. Again, note that all the cases will be
+/// checked and contribute to the panic at the end:
+///
+/// ``` rust,should_panic
+/// # #[macro_use] extern crate credibility;
+/// # fn main() {
+/// test_block!(tb, "An example test block", {
+///     let cases = vec![
+///         (2, 3, 5),  // will be checked
+///         (1, 1, 2),  // will also be checked!
+///         (1, 1, 3),  // and this, too (the single successful test case)
+///     ];
+///     for (in1, in2, output) in cases {
+///         let result = in1+in2;
+///         aver_ne!(tb, output, result);
+///     }
+///     Ok(())
+/// });
+/// # }
+/// ```
+#[macro_export]
+macro_rules! aver_ne {
+    ($block:ident, $($arg:tt)+) => {
+        $block.eval_aver(|| {
+            assert_ne!($($arg)+);
+        });
+    };
+}
+
 /// Create a [`TestBlock`](struct.TestBlock.html) valid for a block of code.
 ///
 /// `test_block` is a convenience macro (that's very convenient!) for

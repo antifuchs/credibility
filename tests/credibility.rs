@@ -48,6 +48,25 @@ fn aver_eq() {
 }
 
 #[test]
+fn aver_ne() {
+    let mut tracker = TestTracker::default();
+    {
+        test_block!(
+            tb,
+            tracker,
+            "Checking that aver failures don't cause aborts",
+            {
+                aver_ne!(tb, false, false, "Equal");
+                aver_ne!(tb, true, false, "Not equal");
+                aver_ne!(tb, true, false, "Not equal, again");
+                Ok(())
+            }
+        );
+    }
+    assert_eq!(tracker.counts(), (1, 2, 0, 1));
+}
+
+#[test]
 fn aver_table() {
     let mut tracker = TestTracker::default();
     {
