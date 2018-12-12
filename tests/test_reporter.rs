@@ -21,24 +21,22 @@ fn panic_with_default_reporter() {
 
 #[test]
 fn aver_with_default_reporter() {
-    assert!(
-        catch_unwind(|| {
-            test_block!(inner_tb, "Block with a default test reporter", {
-                aver!(inner_tb, false, "Executed");
-                aver!(inner_tb, false, "Also executed");
-                Ok(())
-            });
-        }).is_err()
-    );
+    assert!(catch_unwind(|| {
+        test_block!(inner_tb, "Block with a default test reporter", {
+            aver!(inner_tb, false, "Executed");
+            aver!(inner_tb, false, "Also executed");
+            Ok(())
+        });
+    })
+    .is_err());
 }
 
 #[test]
 fn err_result_with_default_reporter() {
-    assert!(
-        catch_unwind(|| {
-            test_block!(inner_tb, "Block with a default test reporter", {
-                Err(format_err!("I should fail!"))
-            });
-        }).is_err()
-    );
+    assert!(catch_unwind(|| {
+        test_block!(inner_tb, "Block with a default test reporter", {
+            Err(format_err!("I should fail!"))
+        });
+    })
+    .is_err());
 }
