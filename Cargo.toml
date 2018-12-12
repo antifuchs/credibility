@@ -19,9 +19,6 @@ tag-prefix = "v"
 
 [package.metadata.template_ci.clippy]
 allow_failure = false
-
-[package.metadata.template_ci.bench]
-run = true
 version = "stable"
 
 [badges]
