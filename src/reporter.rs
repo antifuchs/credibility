@@ -9,10 +9,8 @@ pub trait TestReporter {
     /// kind, the `aver!` failed, indicating that the test should fail.
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>);
 
-    /// Invoked whenever a test block finished. If result is an `Err`,
-    /// indicates that the block failed. This means that the test
-    /// should abort.
-    fn ran<T: Send + Sized + Debug, E: Send + Sized + Debug>(&mut self, result: Result<T, E>);
+    /// Invoked whenever a test block finishes.
+    fn ran(&mut self);
 
     /// Invoked at the end of life of a test block.
     ///
@@ -43,35 +41,11 @@ impl TestReporter for DefaultTestReporter {
         }
     }
 
-    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: Result<T, E>) {
-        result.expect("Unexpected error result");
-    }
+    fn ran(&mut self) {}
 
     fn tally<'a>(&self, name: &'a str) {
         if self.failed {
             panic!("Test cases in block {:?} failed", name);
         }
-    }
-}
-
-#[derive(Debug)]
-#[doc(hidden)]
-pub struct TestBlockResult<T: Debug + Sized, E: Debug + Sized>(Result<T, E>);
-
-impl<T: Debug + Sized, E: Debug + Sized> TestBlockResult<T, E> {
-    pub fn result(self) -> Result<T, E> {
-        self.0
-    }
-}
-
-impl From<()> for TestBlockResult<(), ()> {
-    fn from(_nothing: ()) -> TestBlockResult<(), ()> {
-        TestBlockResult(Ok(()))
-    }
-}
-
-impl<T: Debug + Sized, E: Debug + Sized> From<Result<T, E>> for TestBlockResult<T, E> {
-    fn from(res: Result<T, E>) -> TestBlockResult<T, E> {
-        TestBlockResult(res)
     }
 }

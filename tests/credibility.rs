@@ -2,10 +2,8 @@
 extern crate credibility;
 
 use credibility::selftest::*;
-
-fn failure_result() -> Result<(), &'static str> {
-    Err("nope!")
-}
+use std::fmt::Debug;
+use std::io::{self, Write};
 
 #[test]
 fn aver_failures() {
@@ -21,7 +19,7 @@ fn aver_failures() {
             }
         );
     }
-    assert_eq!(tracker.counts(), (2, 0, 0, 1));
+    assert_eq!(tracker.counts(), (2, 0, 1));
 }
 
 #[test]
@@ -39,7 +37,7 @@ fn aver_eq() {
             }
         );
     }
-    assert_eq!(tracker.counts(), (2, 1, 0, 1));
+    assert_eq!(tracker.counts(), (2, 1, 1));
 }
 
 #[test]
@@ -57,7 +55,7 @@ fn aver_ne() {
             }
         );
     }
-    assert_eq!(tracker.counts(), (1, 2, 0, 1));
+    assert_eq!(tracker.counts(), (1, 2, 1));
 }
 
 #[test]
@@ -77,7 +75,7 @@ fn aver_table() {
             }
         );
     }
-    assert_eq!(tracker.counts(), (1, 2, 0, 1));
+    assert_eq!(tracker.counts(), (1, 2, 1));
 }
 
 #[test]
@@ -89,25 +87,40 @@ fn aver_success() {
             aver!(tb, true, "Also executed");
         });
     }
-    assert_eq!(tracker.counts(), (0, 2, 0, 1));
+    assert_eq!(tracker.counts(), (0, 2, 1));
+}
+
+struct TestError(String);
+
+impl<T: Debug + Sized> From<T> for TestError {
+    fn from(f: T) -> Self {
+        TestError(format!("test error: {:?}", f))
+    }
+}
+
+fn failure_result() -> Result<(), &'static str> {
+    Err("nope!")
 }
 
 #[test]
 fn err_result() {
     let mut tracker = TestTracker::default();
-    {
+    let _res = || -> Result<(), TestError> {
         test_block!(tb, tracker, "asserting that failure happens", {
-            failure_result()
-        });
-    }
-    assert_eq!(tracker.counts(), (0, 0, 1, 0));
+            io::stdout().write(b"hi there!")?;
+            failure_result()?;
+            Ok(())
+        })
+    }();
+    assert_eq!(tracker.counts(), (0, 0, 0));
 }
 
 #[test]
-fn ok_result() {
+fn ok_result() -> Result<(), &'static str> {
     let mut tracker = TestTracker::default();
     {
         test_block!(tb, tracker, "asserting that success is OK", {});
     }
-    assert_eq!(tracker.counts(), (0, 0, 0, 1));
+    assert_eq!(tracker.counts(), (0, 0, 1));
+    Ok(())
 }

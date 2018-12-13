@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use std::panic::{catch_unwind, UnwindSafe};
 
-use super::TestBlockResult;
 use super::TestReporter;
 
 /// A RAII test result accumulator.  The `TestBlock` defines a unit of
@@ -47,13 +46,8 @@ where
         self.status_tracker.averred(res);
     }
 
-    /// Called at the end of a block of code that returns a `Result`.
-    pub fn ran<T: Send + Sized + Debug, E: Send + Sized + Debug>(
-        &mut self,
-        res: impl Into<TestBlockResult<T, E>>,
-    ) {
-        let res = res.into();
-        self.status_tracker.ran(res.result());
+    pub fn finished(&mut self) {
+        self.status_tracker.ran()
     }
 }
 

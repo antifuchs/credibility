@@ -28,16 +28,16 @@ fn aver_with_default_reporter() {
     .is_err());
 }
 
-fn error_result() -> Result<(), &'static str> {
-    return Err("I should fail");
+fn error_result() -> Result<(), ()> {
+    return Err(());
 }
 
 #[test]
 fn err_result_with_default_reporter() {
-    assert!(catch_unwind(|| {
+    assert_eq!(
+        Err(()),
         test_block!(inner_tb, "Block with a default test reporter", {
             error_result()
-        });
-    })
-    .is_err());
+        })
+    );
 }
