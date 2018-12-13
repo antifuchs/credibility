@@ -1,5 +1,3 @@
-extern crate failure;
-
 mod macros;
 mod reporter;
 pub mod selftest;

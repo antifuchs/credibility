@@ -1,13 +1,10 @@
 #[macro_use]
 extern crate credibility;
-#[macro_use]
-extern crate failure;
 
 use credibility::selftest::*;
 
-fn failure_result() -> Result<(), failure::Error> {
-    Err(format_err!("nope!"))?;
-    Ok(())
+fn failure_result() -> Result<(), &'static str> {
+    Err("nope!")
 }
 
 #[test]
@@ -21,7 +18,6 @@ fn aver_failures() {
             {
                 aver!(tb, false, "Executed");
                 aver!(tb, false, "Also executed");
-                Ok(())
             }
         );
     }
@@ -40,7 +36,6 @@ fn aver_eq() {
                 aver_eq!(tb, false, false, "Equal");
                 aver_eq!(tb, true, false, "Not equal");
                 aver_eq!(tb, true, false, "Not equal, again");
-                Ok(())
             }
         );
     }
@@ -59,7 +54,6 @@ fn aver_ne() {
                 aver_ne!(tb, false, false, "Equal");
                 aver_ne!(tb, true, false, "Not equal");
                 aver_ne!(tb, true, false, "Not equal, again");
-                Ok(())
             }
         );
     }
@@ -80,7 +74,6 @@ fn aver_table() {
                     let sum = in1 + in2;
                     aver_eq!(tb, sum, output);
                 }
-                Ok(())
             }
         );
     }
@@ -94,7 +87,6 @@ fn aver_success() {
         test_block!(tb, tracker, "Checking that aver successes count", {
             aver!(tb, true, "Executed");
             aver!(tb, true, "Also executed");
-            Ok(())
         });
     }
     assert_eq!(tracker.counts(), (0, 2, 0, 1));
@@ -115,7 +107,7 @@ fn err_result() {
 fn ok_result() {
     let mut tracker = TestTracker::default();
     {
-        test_block!(tb, tracker, "asserting that success is OK", { Ok(()) });
+        test_block!(tb, tracker, "asserting that success is OK", {});
     }
     assert_eq!(tracker.counts(), (0, 0, 0, 1));
 }

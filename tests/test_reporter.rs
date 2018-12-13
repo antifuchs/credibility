@@ -2,8 +2,6 @@
 
 #[macro_use]
 extern crate credibility;
-#[macro_use]
-extern crate failure;
 
 use std::panic::catch_unwind;
 
@@ -25,17 +23,20 @@ fn aver_with_default_reporter() {
         test_block!(inner_tb, "Block with a default test reporter", {
             aver!(inner_tb, false, "Executed");
             aver!(inner_tb, false, "Also executed");
-            Ok(())
         });
     })
     .is_err());
+}
+
+fn error_result() -> Result<(), &'static str> {
+    return Err("I should fail");
 }
 
 #[test]
 fn err_result_with_default_reporter() {
     assert!(catch_unwind(|| {
         test_block!(inner_tb, "Block with a default test reporter", {
-            Err(format_err!("I should fail!"))
+            error_result()
         });
     })
     .is_err());

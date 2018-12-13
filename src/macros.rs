@@ -12,7 +12,6 @@
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver!(tb, true, "A working assertion");
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -32,7 +31,6 @@
 ///     for (in1, in2, output) in cases {
 ///         aver!(tb, in1+in2 != output);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -58,7 +56,6 @@ macro_rules! aver {
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver_eq!(tb, 2+3, 5, "Math should work!");
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -80,7 +77,6 @@ macro_rules! aver {
 ///         let result = in1+in2+1;
 ///         aver_eq!(tb, output, result);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -106,7 +102,6 @@ macro_rules! aver_eq {
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver_ne!(tb, 2+4, 5, "Math should work!");
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -128,7 +123,6 @@ macro_rules! aver_eq {
 ///         let result = in1+in2;
 ///         aver_ne!(tb, output, result);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -185,7 +179,6 @@ macro_rules! aver_ne {
 ///     for (in1, in2, output) in cases {
 ///         aver_eq!(tb, output, in1+in2);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -193,8 +186,7 @@ macro_rules! aver_ne {
 /// An example of how to handle error results in tests:
 /// ``` rust, should_panic
 /// # #[macro_use] extern crate credibility;
-/// # #[macro_use] extern crate failure;
-/// # fn fail() -> Result<(), failure::Error> { Err(format_err!("this test should fail")) }
+/// # fn fail() -> Result<(), &'static str> { Err("this test should fail") }
 /// # fn main() {
 /// test_block!(tb, "An example test block that should fail", {
 ///     fail()

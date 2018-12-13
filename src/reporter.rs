@@ -1,4 +1,3 @@
-use failure;
 use std::fmt::Debug;
 use std::thread;
 
@@ -13,7 +12,10 @@ pub trait TestReporter {
     /// Invoked whenever a test block finished. If result is an `Err`,
     /// indicates that the block failed. This means that the test
     /// should abort.
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>);
+    fn ran<T: Send + Sized + Debug, E: Send + Sized + Debug>(
+        &mut self,
+        result: TestBlockResult<T, E>,
+    );
 
     /// Invoked at the end of life of a test block.
     ///
@@ -44,13 +46,36 @@ impl TestReporter for DefaultTestReporter {
         }
     }
 
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
-        result.expect("Unexpected error result");
+    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: TestBlockResult<T, E>) {
+        if let Some(res) = result.res {
+            res.expect("Unexpected error result");
+        }
     }
 
     fn tally<'a>(&self, name: &'a str) {
         if self.failed {
             panic!("Test cases in block {:?} failed", name);
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct TestBlockResult<T, E>
+where
+    T: Debug + Sized,
+    E: Debug + Sized,
+{
+    pub res: Option<Result<T, E>>,
+}
+
+impl From<()> for TestBlockResult<(), ()> {
+    fn from(_nothing: ()) -> TestBlockResult<(), ()> {
+        TestBlockResult { res: None }
+    }
+}
+
+impl<T: Debug + Send, E: Debug + Send> From<Result<T, E>> for TestBlockResult<T, E> {
+    fn from(res: Result<T, E>) -> TestBlockResult<T, E> {
+        TestBlockResult { res: Some(res) }
     }
 }

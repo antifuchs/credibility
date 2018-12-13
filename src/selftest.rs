@@ -1,10 +1,8 @@
 //! Structs and functions to enable testing `credibility` itself
-use crate::TestReporter;
+use crate::{TestBlockResult, TestReporter};
 
 use std::fmt::Debug;
 use std::thread;
-
-use failure;
 
 /// A test reporter that counts the number of things that
 /// happened. It's mostly useful for writing tests.
@@ -39,11 +37,12 @@ impl TestReporter for TestTracker {
         }
     }
 
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
+    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: TestBlockResult<T, E>) {
         println!("run result: {:?}", result);
-        match result {
-            Err(_) => self.errored += 1,
-            Ok(_) => self.ran += 1,
+        match result.res {
+            Some(Err(_)) => self.errored += 1,
+            Some(Ok(_)) => self.ran += 1,
+            None => self.ran += 1,
         }
     }
 

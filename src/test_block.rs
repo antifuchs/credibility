@@ -1,6 +1,7 @@
-use failure;
+use std::fmt::Debug;
 use std::panic::{catch_unwind, UnwindSafe};
 
+use super::TestBlockResult;
 use super::TestReporter;
 
 /// A RAII test result accumulator.  The `TestBlock` defines a unit of
@@ -47,8 +48,11 @@ where
     }
 
     /// Called at the end of a block of code that returns a `Result`.
-    pub fn ran(&mut self, res: Result<(), failure::Error>) {
-        self.status_tracker.ran(res);
+    pub fn ran<T: Send + Sized + Debug, E: Send + Sized + Debug>(
+        &mut self,
+        res: impl Into<TestBlockResult<T, E>>,
+    ) {
+        self.status_tracker.ran(res.into());
     }
 }
 
