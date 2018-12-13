@@ -1,5 +1,5 @@
 //! Structs and functions to enable testing `credibility` itself
-use crate::{TestBlockResult, TestReporter};
+use crate::TestReporter;
 
 use std::fmt::Debug;
 use std::thread;
@@ -37,12 +37,11 @@ impl TestReporter for TestTracker {
         }
     }
 
-    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: TestBlockResult<T, E>) {
+    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: Result<T, E>) {
         println!("run result: {:?}", result);
-        match result.res {
-            Some(Err(_)) => self.errored += 1,
-            Some(Ok(_)) => self.ran += 1,
-            None => self.ran += 1,
+        match result {
+            Err(_) => self.errored += 1,
+            Ok(_) => self.ran += 1,
         }
     }
 

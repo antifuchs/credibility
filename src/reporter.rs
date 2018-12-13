@@ -12,10 +12,7 @@ pub trait TestReporter {
     /// Invoked whenever a test block finished. If result is an `Err`,
     /// indicates that the block failed. This means that the test
     /// should abort.
-    fn ran<T: Send + Sized + Debug, E: Send + Sized + Debug>(
-        &mut self,
-        result: TestBlockResult<T, E>,
-    );
+    fn ran<T: Send + Sized + Debug, E: Send + Sized + Debug>(&mut self, result: Result<T, E>);
 
     /// Invoked at the end of life of a test block.
     ///
@@ -46,10 +43,8 @@ impl TestReporter for DefaultTestReporter {
         }
     }
 
-    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: TestBlockResult<T, E>) {
-        if let Some(res) = result.res {
-            res.expect("Unexpected error result");
-        }
+    fn ran<T: Sized + Debug, E: Sized + Debug>(&mut self, result: Result<T, E>) {
+        result.expect("Unexpected error result");
     }
 
     fn tally<'a>(&self, name: &'a str) {
@@ -60,22 +55,23 @@ impl TestReporter for DefaultTestReporter {
 }
 
 #[derive(Debug)]
-pub struct TestBlockResult<T, E>
-where
-    T: Debug + Sized,
-    E: Debug + Sized,
-{
-    pub res: Option<Result<T, E>>,
+#[doc(hidden)]
+pub struct TestBlockResult<T: Debug + Sized, E: Debug + Sized>(Result<T, E>);
+
+impl<T: Debug + Sized, E: Debug + Sized> TestBlockResult<T, E> {
+    pub fn result(self) -> Result<T, E> {
+        self.0
+    }
 }
 
 impl From<()> for TestBlockResult<(), ()> {
     fn from(_nothing: ()) -> TestBlockResult<(), ()> {
-        TestBlockResult { res: None }
+        TestBlockResult(Ok(()))
     }
 }
 
 impl<T: Debug + Send, E: Debug + Send> From<Result<T, E>> for TestBlockResult<T, E> {
     fn from(res: Result<T, E>) -> TestBlockResult<T, E> {
-        TestBlockResult { res: Some(res) }
+        TestBlockResult(res)
     }
 }

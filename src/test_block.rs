@@ -52,7 +52,8 @@ where
         &mut self,
         res: impl Into<TestBlockResult<T, E>>,
     ) {
-        self.status_tracker.ran(res.into());
+        let res = res.into();
+        self.status_tracker.ran(res.result());
     }
 }
 
