@@ -70,7 +70,7 @@ impl From<()> for TestBlockResult<(), ()> {
     }
 }
 
-impl<T: Debug + Send, E: Debug + Send> From<Result<T, E>> for TestBlockResult<T, E> {
+impl<T: Debug + Sized, E: Debug + Sized> From<Result<T, E>> for TestBlockResult<T, E> {
     fn from(res: Result<T, E>) -> TestBlockResult<T, E> {
         TestBlockResult(res)
     }
