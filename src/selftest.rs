@@ -1,5 +1,5 @@
 //! Structs and functions to enable testing `credibility` itself
-use TestReporter;
+use crate::TestReporter;
 
 use std::fmt::Debug;
 use std::thread;
