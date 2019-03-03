@@ -12,7 +12,6 @@
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver!(tb, true, "A working assertion");
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -32,7 +31,6 @@
 ///     for (in1, in2, output) in cases {
 ///         aver!(tb, in1+in2 != output);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -58,7 +56,6 @@ macro_rules! aver {
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver_eq!(tb, 2+3, 5, "Math should work!");
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -80,7 +77,6 @@ macro_rules! aver {
 ///         let result = in1+in2+1;
 ///         aver_eq!(tb, output, result);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -106,7 +102,6 @@ macro_rules! aver_eq {
 /// # fn main() {
 /// test_block!(tb, "An example test block", {
 ///     aver_ne!(tb, 2+4, 5, "Math should work!");
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -128,7 +123,6 @@ macro_rules! aver_eq {
 ///         let result = in1+in2;
 ///         aver_ne!(tb, output, result);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
@@ -145,17 +139,7 @@ macro_rules! aver_ne {
 ///
 /// `test_block` is a convenience macro (that's very convenient!) for
 /// running tests in bulk and causing a test abort based on their
-/// results once the block terminates. The block of code runs in a
-/// closure defined to return a `Result`, so within the block, `?` and
-/// `try!` work correctly.
-///
-/// # Handling `Result`
-///
-/// Since `test_block!` executes code inside a closure that returns a
-/// Result, test code can use `?` within that block, to short-circuit
-/// error handling without unsightly `.unwrap()` calls. The
-/// unfortunate consequence of this is that code blocks within
-/// `test_block!` macros must return `Ok(())` at the end.
+/// results once the block terminates.
 ///
 /// # Teardown behavior
 /// The behavior at the end of the block depends on the
@@ -169,6 +153,21 @@ macro_rules! aver_ne {
 /// [`TestReporter`](trait.TestReporter.html) argument to customize
 /// this behavior; see the module [`selftest`](selftest/index.html)
 /// for an example.
+///
+/// # Compatibility with test functions that return `Result`s
+///
+/// `test_block` properly treats blocks that use the `?` postfix operator
+/// to handle `Result`s in tests that return `Result` types (see [the
+/// book][using-results-in-tests]). The test block block is evaluated
+/// inside the test function, and whenever a `?` usage would abort and
+/// return an error result early, the test function will do just that.
+///
+/// In other words, using `?` in these functions is the equivalent of
+/// [`testify`][testify]'s `require` functions, which will abort and fail the test
+/// early because it can not continue.
+///
+/// [using-results-in-tests]: https://doc.rust-lang.org/book/ch11-01-writing-tests.html#using-resultt-e-in-tests
+/// [testify]: https://github.com/stretchr/testify#require-package
 ///
 /// # Examples
 ///
@@ -185,34 +184,35 @@ macro_rules! aver_ne {
 ///     for (in1, in2, output) in cases {
 ///         aver_eq!(tb, output, in1+in2);
 ///     }
-///     Ok(())
 /// });
 /// # }
 /// ```
 ///
 /// An example of how to handle error results in tests:
-/// ``` rust, should_panic
+/// ``` rust,should_panic
 /// # #[macro_use] extern crate credibility;
-/// # #[macro_use] extern crate failure;
-/// # fn fail() -> Result<(), failure::Error> { Err(format_err!("this test should fail")) }
-/// # fn main() {
+/// # fn fail() -> Result<(), &'static str> { Err("this test should fail") }
+/// # fn main() -> Result<(), &'static str> {
 /// test_block!(tb, "An example test block that should fail", {
-///     fail()
-/// });
+///     fail()?;
+///     Ok(())
+/// })
 /// # }
 /// ```
 #[macro_export]
 macro_rules! test_block {
     ($block:ident, $tracker:ident, $name:expr, $code:block) => {{
         let mut $block = $crate::TestBlock::new($name, &mut $tracker);
-        let result = {
-            let mut fun = || $code;
-            fun()
-        };
-        $block.ran(result);
+        let res = { $code };
+        // $code might panic, so this might never be reached:
+        #[allow(unreachable_code)]
+        {
+            $block.finished();
+            res
+        }
     }};
     ($block:ident, $name:expr, $code:block) => {{
         let mut tracker = $crate::DefaultTestReporter::default();
-        test_block!($block, tracker, $name, $code);
+        test_block!($block, tracker, $name, $code)
     }};
 }

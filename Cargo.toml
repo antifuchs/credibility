@@ -1,4 +1,5 @@
 [package]
+edition = "2018"
 name = "credibility"
 version = "0.1.4-dev"
 authors = ["Andreas Fuchs <asf@boinkor.net>"]
@@ -22,5 +23,3 @@ circle-ci = { repository = "antifuchs/credibility", branch = "master" }
 maintenance = { status = "passively-maintained" }
 
 [dependencies]
-failure = "0.1.1"
-failure_derive = "0.1.1"

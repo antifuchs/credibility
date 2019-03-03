@@ -1,4 +1,3 @@
-use failure;
 use std::fmt::Debug;
 use std::thread;
 
@@ -10,10 +9,8 @@ pub trait TestReporter {
     /// kind, the `aver!` failed, indicating that the test should fail.
     fn averred<T: Sized + Debug>(&mut self, result: thread::Result<T>);
 
-    /// Invoked whenever a test block finished. If result is an `Err`,
-    /// indicates that the block failed. This means that the test
-    /// should abort.
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>);
+    /// Invoked whenever a test block finishes.
+    fn ran(&mut self);
 
     /// Invoked at the end of life of a test block.
     ///
@@ -44,9 +41,7 @@ impl TestReporter for DefaultTestReporter {
         }
     }
 
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
-        result.expect("Unexpected error result");
-    }
+    fn ran(&mut self) {}
 
     fn tally<'a>(&self, name: &'a str) {
         if self.failed {

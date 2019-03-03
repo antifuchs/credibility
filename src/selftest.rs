@@ -1,17 +1,14 @@
 //! Structs and functions to enable testing `credibility` itself
-use TestReporter;
+use crate::TestReporter;
 
 use std::fmt::Debug;
 use std::thread;
-
-use failure;
 
 /// A test reporter that counts the number of things that
 /// happened. It's mostly useful for writing tests.
 #[derive(Copy, Clone)]
 pub struct TestTracker {
     failed: usize,
-    errored: usize,
     succeeded: usize,
     ran: usize,
 }
@@ -21,7 +18,6 @@ impl Default for TestTracker {
         TestTracker {
             failed: 0,
             succeeded: 0,
-            errored: 0,
             ran: 0,
         }
     }
@@ -39,12 +35,9 @@ impl TestReporter for TestTracker {
         }
     }
 
-    fn ran<T: Sized + Debug>(&mut self, result: Result<T, failure::Error>) {
-        println!("run result: {:?}", result);
-        match result {
-            Err(_) => self.errored += 1,
-            Ok(_) => self.ran += 1,
-        }
+    fn ran(&mut self) {
+        println!("test block finished result");
+        self.ran += 1;
     }
 
     /// Does nothing. To get information about a test block's statuses
@@ -58,7 +51,7 @@ impl TestTracker {
     /// * succeeded assertions
     /// * blocks that returned an Err result
     /// * blocks that returned an Ok result
-    pub fn counts(&self) -> (usize, usize, usize, usize) {
-        (self.failed, self.succeeded, self.errored, self.ran)
+    pub fn counts(&self) -> (usize, usize, usize) {
+        (self.failed, self.succeeded, self.ran)
     }
 }
