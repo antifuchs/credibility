@@ -1,4 +1,3 @@
-use failure;
 use std::panic::{catch_unwind, UnwindSafe};
 
 use super::TestReporter;
@@ -46,9 +45,8 @@ where
         self.status_tracker.averred(res);
     }
 
-    /// Called at the end of a block of code that returns a `Result`.
-    pub fn ran(&mut self, res: Result<(), failure::Error>) {
-        self.status_tracker.ran(res);
+    pub fn finished(&mut self) {
+        self.status_tracker.ran()
     }
 }
 
